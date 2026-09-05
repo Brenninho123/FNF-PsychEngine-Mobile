@@ -53,12 +53,40 @@ class FlashingState extends MusicBeatState
 			return;
 		}
 		var back:Bool = controls.BACK;
+		var confirm:Bool = controls.ACCEPT;
+
 		if (controls.UI_LEFT_P || controls.UI_RIGHT_P) {
 			FlxG.sound.play(Paths.sound("scrollMenu"), 0.7);
 			isYes = !isYes;
 			updateItems();
 		}
-		if (controls.ACCEPT || back) {
+
+		#if mobile
+		for (touch in FlxG.touches.list)
+		{
+			if (!touch.justPressed) continue;
+
+			for (i in 1...3)
+			{
+				var button:FlxText = texts.members[i];
+				if (touch.overlaps(button))
+				{
+					var tappedIsYes:Bool = (i == 1);
+					if (tappedIsYes == isYes)
+						confirm = true;
+					else
+					{
+						FlxG.sound.play(Paths.sound("scrollMenu"), 0.7);
+						isYes = tappedIsYes;
+						updateItems();
+					}
+					break;
+				}
+			}
+		}
+		#end
+
+		if (confirm || back) {
 			leftState = true;
 			FlxTransitionableState.skipNextTransIn = true;
 			FlxTransitionableState.skipNextTransOut = true;
@@ -85,7 +113,6 @@ class FlashingState extends MusicBeatState
 	}
 
 	function updateItems() {
-		// it's clunky but it works.
 		texts.members[1].alpha = isYes ? 1.0 : 0.6;
 		texts.members[2].alpha = isYes ? 0.6 : 1.0;
 	}
