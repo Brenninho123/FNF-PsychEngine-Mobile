@@ -19,7 +19,7 @@ import haxe.Json;
 
 #if mobile
 import mobile.ui.PsychButton;
-import mobile.ui.PsychButtonType;
+import mobile.ui.PsychButton.PsychButtonType;
 #end
 
 class FreeplayState extends MusicBeatState
