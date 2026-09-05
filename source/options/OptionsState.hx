@@ -13,6 +13,7 @@ class OptionsState extends MusicBeatState
 		'Visuals',
 		'Gameplay'
 		#if TRANSLATIONS_ALLOWED , 'Language' #end
+		, 'Open Data Folder'
 	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
@@ -36,6 +37,10 @@ class OptionsState extends MusicBeatState
 				MusicBeatState.switchState(new options.NoteOffsetState());
 			case 'Language':
 				openSubState(new options.LanguageSubState());
+			case 'Open Data Folder':
+				#if android
+				mobile.backend.DataFolderUtil.openDataFolder();
+				#end
 		}
 	}
 
@@ -95,6 +100,10 @@ class OptionsState extends MusicBeatState
 		if (controls.UI_DOWN_P)
 			changeSelection(1);
 
+		#if mobile
+		checkMobileTouches();
+		#end
+
 		if (controls.BACK)
 		{
 			FlxG.sound.play(Paths.sound('cancelMenu'));
@@ -108,7 +117,30 @@ class OptionsState extends MusicBeatState
 		}
 		else if (controls.ACCEPT) openSelectedSubstate(options[curSelected]);
 	}
-	
+
+	#if mobile
+	function checkMobileTouches():Void
+	{
+		for (touch in FlxG.touches.list)
+		{
+			if (!touch.justPressed) continue;
+
+			for (item in grpOptions.members)
+			{
+				if (touch.overlaps(item))
+				{
+					var index:Int = grpOptions.members.indexOf(item);
+					if (index == curSelected)
+						openSelectedSubstate(options[curSelected]);
+					else
+						changeSelection(index - curSelected);
+					break;
+				}
+			}
+		}
+	}
+	#end
+
 	function changeSelection(change:Int = 0)
 	{
 		curSelected = FlxMath.wrap(curSelected + change, 0, options.length - 1);
