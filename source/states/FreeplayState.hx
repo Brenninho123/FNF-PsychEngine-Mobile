@@ -17,6 +17,11 @@ import openfl.utils.Assets;
 
 import haxe.Json;
 
+#if mobile
+import mobile.ui.PsychButton;
+import mobile.ui.PsychButtonType;
+#end
+
 class FreeplayState extends MusicBeatState
 {
 	var songs:Array<SongMetadata> = [];
@@ -52,17 +57,20 @@ class FreeplayState extends MusicBeatState
 
 	var player:MusicPlayer;
 
+	#if mobile
+	var backButton:PsychButton;
+	var touchY:Float = 0;
+	var isDragging:Bool = false;
+	var dragMoved:Float = 0;
+	#end
+
 	override function create()
 	{
-		//Paths.clearStoredMemory();
-		//Paths.clearUnusedMemory();
-		
 		persistentUpdate = true;
 		PlayState.isStoryMode = false;
 		WeekData.reloadWeekFiles(false);
 
 		#if DISCORD_ALLOWED
-		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end
 
@@ -124,18 +132,11 @@ class FreeplayState extends MusicBeatState
 			var icon:HealthIcon = new HealthIcon(songs[i].songCharacter);
 			icon.sprTracker = songText;
 
-			
-			// too laggy with a lot of songs, so i had to recode the logic for it
 			songText.visible = songText.active = songText.isMenuItem = false;
 			icon.visible = icon.active = false;
 
-			// using a FlxGroup is too much fuss!
 			iconArray.push(icon);
 			add(icon);
-
-			// songText.x += 40;
-			// DONT PUT X IN THE FIRST PARAMETER OF new ALPHABET() !!
-			// songText.screenCenter(X);
 		}
 		WeekData.setDirectoryFromWeek();
 
@@ -185,6 +186,15 @@ class FreeplayState extends MusicBeatState
 		
 		player = new MusicPlayer(this);
 		add(player);
+
+		#if mobile
+		backButton = new PsychButton(0, 0, BACK, doBack);
+		backButton.setGraphicSize(Std.int(backButton.width * 0.5));
+		backButton.updateHitbox();
+		backButton.x = FlxG.width - backButton.width - 20;
+		backButton.y = FlxG.height - backButton.height - 20;
+		add(backButton);
+		#end
 		
 		changeSelection();
 		updateTexts();
@@ -232,14 +242,16 @@ class FreeplayState extends MusicBeatState
 			lerpRating = intendedRating;
 
 		var ratingSplit:Array<String> = Std.string(CoolUtil.floorDecimal(lerpRating * 100, 2)).split('.');
-		if(ratingSplit.length < 2) //No decimals, add an empty space
+		if(ratingSplit.length < 2)
 			ratingSplit.push('');
 		
-		while(ratingSplit[1].length < 2) //Less than 2 decimals in it, add decimals then
+		while(ratingSplit[1].length < 2)
 			ratingSplit[1] += '0';
 
 		var shiftMult:Int = 1;
 		if(FlxG.keys.pressed.SHIFT) shiftMult = 3;
+
+		var mobileConfirm:Bool = false;
 
 		if (!player.playingMusic)
 		{
@@ -286,6 +298,10 @@ class FreeplayState extends MusicBeatState
 					FlxG.sound.play(Paths.sound('scrollMenu'), 0.2);
 					changeSelection(-shiftMult * FlxG.mouse.wheel, false);
 				}
+
+				#if mobile
+				mobileConfirm = checkMobileInput();
+				#end
 			}
 
 			if (controls.UI_LEFT_P)
@@ -301,27 +317,7 @@ class FreeplayState extends MusicBeatState
 		}
 
 		if (controls.BACK)
-		{
-			if (player.playingMusic)
-			{
-				FlxG.sound.music.stop();
-				destroyFreeplayVocals();
-				FlxG.sound.music.volume = 0;
-				instPlaying = -1;
-
-				player.playingMusic = false;
-				player.switchPlayMusic();
-
-				FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
-				FlxTween.tween(FlxG.sound.music, {volume: 1}, 1);
-			}
-			else 
-			{
-				persistentUpdate = false;
-				FlxG.sound.play(Paths.sound('cancelMenu'));
-				MusicBeatState.switchState(new MainMenuState());
-			}
-		}
+			doBack();
 
 		if(FlxG.keys.justPressed.CONTROL && !player.playingMusic)
 		{
@@ -366,7 +362,6 @@ class FreeplayState extends MusicBeatState
 					opponentVocals = new FlxSound();
 					try
 					{
-						//trace('please work...');
 						var oppVocals:String = getVocalFromCharacter(PlayState.SONG.player2);
 						var loadedVocals = Paths.voices(PlayState.SONG.song, (oppVocals != null && oppVocals.length > 0) ? oppVocals : 'Opponent');
 						
@@ -378,13 +373,11 @@ class FreeplayState extends MusicBeatState
 							opponentVocals.volume = 0.8;
 							opponentVocals.play();
 							opponentVocals.pause();
-							//trace('yaaay!!');
 						}
 						else opponentVocals = FlxDestroyUtil.destroy(opponentVocals);
 					}
 					catch(e:Dynamic)
 					{
-						//trace('FUUUCK');
 						opponentVocals = FlxDestroyUtil.destroy(opponentVocals);
 					}
 				}
@@ -403,7 +396,7 @@ class FreeplayState extends MusicBeatState
 				player.pauseOrResume(!player.playing);
 			}
 		}
-		else if (controls.ACCEPT && !player.playingMusic)
+		else if ((controls.ACCEPT || mobileConfirm) && !player.playingMusic)
 		{
 			persistentUpdate = false;
 			var songLowercase:String = Paths.formatToSongPath(songs[curSelected].songName);
@@ -414,15 +407,11 @@ class FreeplayState extends MusicBeatState
 				Song.loadFromJson(poop, songLowercase);
 				PlayState.isStoryMode = false;
 				PlayState.storyDifficulty = curDifficulty;
-
-				trace('CURRENT WEEK: ' + WeekData.getWeekFileName());
 			}
 			catch(e:haxe.Exception)
 			{
-				trace('ERROR! ${e.message}');
-
 				var errorStr:String = e.message;
-				if(errorStr.contains('There is no TEXT asset with an ID of')) errorStr = 'Missing file: ' + errorStr.substring(errorStr.indexOf(songLowercase), errorStr.length-1); //Missing chart
+				if(errorStr.contains('There is no TEXT asset with an ID of')) errorStr = 'Missing file: ' + errorStr.substring(errorStr.indexOf(songLowercase), errorStr.length-1);
 				else errorStr += '\n\n' + e.stack;
 
 				missingText.text = 'ERROR WHILE LOADING CHART:\n$errorStr';
@@ -439,7 +428,6 @@ class FreeplayState extends MusicBeatState
 			@:privateAccess
 			if(PlayState._lastLoadedModDirectory != Mods.currentModDirectory)
 			{
-				trace('CHANGED MOD DIRECTORY, RELOADING STUFF');
 				Paths.freeGraphicsFromMemory();
 			}
 			LoadingState.prepareToSong();
@@ -462,6 +450,81 @@ class FreeplayState extends MusicBeatState
 		updateTexts(elapsed);
 		super.update(elapsed);
 	}
+
+	function doBack():Void
+	{
+		if (player.playingMusic)
+		{
+			FlxG.sound.music.stop();
+			destroyFreeplayVocals();
+			FlxG.sound.music.volume = 0;
+			instPlaying = -1;
+
+			player.playingMusic = false;
+			player.switchPlayMusic();
+
+			FlxG.sound.playMusic(Paths.music('freakyMenu'), 0);
+			FlxTween.tween(FlxG.sound.music, {volume: 1}, 1);
+		}
+		else
+		{
+			persistentUpdate = false;
+			FlxG.sound.play(Paths.sound('cancelMenu'));
+			MusicBeatState.switchState(new MainMenuState());
+		}
+	}
+
+	#if mobile
+	function checkMobileInput():Bool
+	{
+		var confirm:Bool = false;
+
+		for (touch in FlxG.touches.list)
+		{
+			if (touch.justPressed)
+			{
+				isDragging = true;
+				touchY = touch.y;
+				dragMoved = 0;
+
+				for (item in grpSongs.members)
+				{
+					if (item.visible && touch.overlaps(item))
+					{
+						if (item.targetY == curSelected)
+							confirm = true;
+						else
+							changeSelection(item.targetY - curSelected);
+						break;
+					}
+				}
+			}
+			else if (touch.pressed && isDragging)
+			{
+				var delta:Float = touch.y - touchY;
+				dragMoved += delta;
+				touchY = touch.y;
+
+				while (dragMoved <= -40)
+				{
+					changeSelection(1, false);
+					dragMoved += 40;
+				}
+				while (dragMoved >= 40)
+				{
+					changeSelection(-1, false);
+					dragMoved -= 40;
+				}
+			}
+			else if (touch.justReleased)
+			{
+				isDragging = false;
+			}
+		}
+
+		return confirm;
+	}
+	#end
 	
 	function getVocalFromCharacter(char:String)
 	{
