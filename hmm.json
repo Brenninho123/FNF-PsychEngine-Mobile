@@ -32,7 +32,7 @@
 			"type": "git",
 			"dir": null,
 			"ref": "master",
-			"url": "https://github.com/MAJigsaw77/linc_luajit.git"
+			"url": "https://github.com/AndreiRudenko/linc_luajit.git"
 		},
 		{
 			"name": "hxvlc",
