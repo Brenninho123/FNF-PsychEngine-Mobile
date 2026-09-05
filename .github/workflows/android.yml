@@ -27,17 +27,17 @@ jobs:
 
       - name: Install Haxelib
         run: |
-          sudo apt-get install libvlc-dev
-          sudo apt-get install libvlccore-dev
-          haxelib setup ~/haxelib
+          sudo apt-get install -qq libvlc-dev
+          sudo apt-get install -qq libvlccore-dev
+          haxelib setup ~/haxelib --quiet
           haxelib install hxcpp > /dev/null --quiet
           chmod +x ./setup/unix.sh
           sh ./setup/unix.sh
 
       - name: Install dependencies via hmm
         run: |
-          haxelib git hmm https://github.com/andywhite37/hmm.git
-          haxelib run hmm install
+          haxelib git hmm https://github.com/andywhite37/hmm.git --quiet
+          haxelib run hmm install --quiet
 
       - name: Skip SScript setup mode
         run: echo 'oy9:showMacroty8:loopCosti25y10:includeAllfg' >> ~/settings.cocoa
