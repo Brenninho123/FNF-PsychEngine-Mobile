@@ -60,8 +60,8 @@
 			"name": "funkin.vis",
 			"type": "git",
 			"dir": null,
-			"ref": "main",
-			"url": "https://github.com/FunkinCrew/funkin.vis.git"
+			"ref": "2aa654b974507ab51ab1724d2d97e75726fd7d78",
+			"url": "https://github.com/FunkinCrew/funkVis.git"
 		},
 		{
 			"name": "extension-androidtools",
