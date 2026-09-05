@@ -52,9 +52,9 @@
 		{
 			"name": "grig.audio",
 			"type": "git",
-			"dir": null,
+			"dir": "src",
 			"ref": "main",
-			"url": "https://github.com/MaybeMaru/grig.audio.git"
+			"url": "https://github.com/FunkinCrew/grig.audio.git"
 		},
 		{
 			"name": "funkin.vis",
