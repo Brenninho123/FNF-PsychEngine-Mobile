@@ -46,10 +46,8 @@
 		},
 		{
 			"name": "hxcpp-debug-server",
-			"type": "git",
-			"dir": null,
-			"ref": "master",
-			"url": "https://github.com/ianharrigan/hxcpp-debug-server.git"
+			"type": "haxelib",
+			"version": "1.2.4"
 		},
 		{
 			"name": "grig.audio",
