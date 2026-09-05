@@ -7,12 +7,14 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		title = Language.getPhrase('gameplay_menu', 'Gameplay Settings');
 		rpcTitle = 'Gameplay Settings Menu';
 
-		ClientPrefs.data.downScroll = true;
 		var option:Option = new Option('Downscroll',
 			'If checked, notes go Down instead of Up, simple enough.',
 			'downScroll',
 			BOOL);
+		#if mobile
+		ClientPrefs.data.downScroll = true;
 		option.locked = true;
+		#end
 		addOption(option);
 
 		var option:Option = new Option('Middlescroll',
