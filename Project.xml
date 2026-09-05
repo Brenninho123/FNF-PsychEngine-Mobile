@@ -45,6 +45,7 @@
 	<set name="BUILD_DIR" value="export/32bit" if="32bits" />
 
 	<classpath name="source" />
+	<java path="source" if="android"/>
 
 	<define name="CRASH_HANDLER" if="desktop release" />
 
