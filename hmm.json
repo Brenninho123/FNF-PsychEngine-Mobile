@@ -53,7 +53,7 @@
 			"name": "grig.audio",
 			"type": "git",
 			"dir": "src",
-			"ref": "main",
+			"ref": "funkin",
 			"url": "https://github.com/FunkinCrew/grig.audio.git"
 		},
 		{
