@@ -14,16 +14,15 @@ enum MainMenuColumn {
 
 class MainMenuState extends MusicBeatState
 {
-	public static var psychEngineVersion:String = '1.0.4'; // This is also used for Discord RPC
+	public static var psychEngineVersion:String = '1.0.4';
 	public static var curSelected:Int = 0;
 	public static var curColumn:MainMenuColumn = CENTER;
-	var allowMouse:Bool = true; //Turn this off to block mouse movement in menus
+	var allowMouse:Bool = true;
 
 	var menuItems:FlxTypedGroup<FlxSprite>;
 	var leftItem:FlxSprite;
 	var rightItem:FlxSprite;
 
-	//Centered/Text options
 	var optionShit:Array<String> = [
 		'story_mode',
 		'freeplay',
@@ -48,7 +47,6 @@ class MainMenuState extends MusicBeatState
 		Mods.loadTopMod();
 
 		#if DISCORD_ALLOWED
-		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end
 
@@ -82,7 +80,7 @@ class MainMenuState extends MusicBeatState
 		for (num => option in optionShit)
 		{
 			var item:FlxSprite = createMenuItem(option, 0, (num * 140) + 90);
-			item.y += (4 - optionShit.length) * 70; // Offsets for when you have anything other than 4 items
+			item.y += (4 - optionShit.length) * 70;
 			item.screenCenter(X);
 		}
 
@@ -104,8 +102,12 @@ class MainMenuState extends MusicBeatState
 		add(fnfVer);
 		changeItem();
 
+		#if mobile
+		FlxG.mouse.visible = false;
+		allowMouse = false;
+		#end
+
 		#if ACHIEVEMENTS_ALLOWED
-		// Unlocks "Freaky on a Friday Night" achievement if it's a Friday and between 18:00 PM and 23:59 PM
 		var leDate = Date.now();
 		if (leDate.getDay() == 5 && leDate.getHours() >= 18)
 			Achievements.unlock('friday_night_play');
@@ -157,8 +159,68 @@ class MainMenuState extends MusicBeatState
 			if (controls.UI_DOWN_P)
 				changeItem(1);
 
+			var mobileConfirm:Bool = false;
+
+			#if mobile
+			for (touch in FlxG.touches.list)
+			{
+				if (!touch.justPressed) continue;
+
+				var selectedItem:FlxSprite;
+				switch(curColumn)
+				{
+					case CENTER:
+						selectedItem = menuItems.members[curSelected];
+					case LEFT:
+						selectedItem = leftItem;
+					case RIGHT:
+						selectedItem = rightItem;
+				}
+
+				if(leftItem != null && touch.overlaps(leftItem))
+				{
+					if(selectedItem == leftItem)
+						mobileConfirm = true;
+					else
+					{
+						curColumn = LEFT;
+						changeItem();
+					}
+				}
+				else if(rightItem != null && touch.overlaps(rightItem))
+				{
+					if(selectedItem == rightItem)
+						mobileConfirm = true;
+					else
+					{
+						curColumn = RIGHT;
+						changeItem();
+					}
+				}
+				else
+				{
+					for (i in 0...optionShit.length)
+					{
+						var memb:FlxSprite = menuItems.members[i];
+						if(touch.overlaps(memb))
+						{
+							if(curColumn == CENTER && curSelected == i)
+								mobileConfirm = true;
+							else
+							{
+								curColumn = CENTER;
+								curSelected = i;
+								changeItem();
+							}
+							break;
+						}
+					}
+				}
+				break;
+			}
+			#else
 			var allowMouse:Bool = allowMouse;
-			if (allowMouse && ((FlxG.mouse.deltaScreenX != 0 && FlxG.mouse.deltaScreenY != 0) || FlxG.mouse.justPressed)) //FlxG.mouse.deltaScreenX/Y checks is more accurate than FlxG.mouse.justMoved
+			if (allowMouse && ((FlxG.mouse.deltaScreenX != 0 && FlxG.mouse.deltaScreenY != 0) || FlxG.mouse.justPressed))
 			{
 				allowMouse = false;
 				FlxG.mouse.visible = true;
@@ -225,6 +287,7 @@ class MainMenuState extends MusicBeatState
 				timeNotMoving += elapsed;
 				if(timeNotMoving > 2) FlxG.mouse.visible = false;
 			}
+			#end
 
 			switch(curColumn)
 			{
@@ -263,7 +326,7 @@ class MainMenuState extends MusicBeatState
 				MusicBeatState.switchState(new TitleState());
 			}
 
-			if (controls.ACCEPT || (FlxG.mouse.justPressed && allowMouse))
+			if (controls.ACCEPT || mobileConfirm #if !mobile || (FlxG.mouse.justPressed && allowMouse) #end)
 			{
 				FlxG.sound.play(Paths.sound('confirmMenu'));
 				selectedSomethin = true;
@@ -324,7 +387,6 @@ class MainMenuState extends MusicBeatState
 							selectedSomethin = false;
 							item.visible = true;
 						default:
-							trace('Menu Item ${option} doesn\'t do anything');
 							selectedSomethin = false;
 							item.visible = true;
 					}
