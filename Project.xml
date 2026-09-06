@@ -4,6 +4,10 @@
 	<app title="Friday Night Funkin': Psych Engine" file="PsychEngine" packageName="com.shadowmario.psychengine" package="com.shadowmario.psychengine" main="Main" version="0.2.8" company="ShadowMario" />
 	<app title="FNF: Psych Engine" if="mobile" />
 
+	<config :android="true">
+		<stl value="c++_static" />
+	</config>
+
 	<set name="APP_ID" value="0x0100f6c013bbc000" />
 
 	<haxedef name="LINC_LUA_RELATIVE_DYNAMIC_LIB"/>
@@ -50,28 +54,28 @@
 	<define name="CRASH_HANDLER" if="desktop release" />
 
 	<assets path="assets/fonts" />
-	<assets path="assets/shared"        exclude="*.ogg" if="web"/>
-	<assets path="assets/shared"        exclude="*.mp3" unless="web"/>
-	<assets path="assets/embed"         exclude="*.ogg" if="web" embed="true"/>
-	<assets path="assets/embed"         exclude="*.mp3" unless="web" embed="true"/>
-	<assets path="assets/videos"        if="VIDEOS_ALLOWED"/>
-	<assets path="assets/songs"         exclude="*.ogg" if="web"/>
-	<assets path="assets/songs"         exclude="*.mp3" unless="web"/>
-	<assets path="assets/week_assets"   rename="assets" exclude="*.ogg" if="web"/>
-	<assets path="assets/week_assets"   rename="assets" exclude="*.mp3" unless="web"/>
+	<assets path="assets/shared" exclude="*.ogg" if="web"/>
+	<assets path="assets/shared" exclude="*.mp3" unless="web"/>
+	<assets path="assets/embed" exclude="*.ogg" if="web" embed="true"/>
+	<assets path="assets/embed" exclude="*.mp3" unless="web" embed="true"/>
+	<assets path="assets/videos" if="VIDEOS_ALLOWED"/>
+	<assets path="assets/songs" exclude="*.ogg" if="web"/>
+	<assets path="assets/songs" exclude="*.mp3" unless="web"/>
+	<assets path="assets/week_assets" rename="assets" exclude="*.ogg" if="web"/>
+	<assets path="assets/week_assets" rename="assets" exclude="*.mp3" unless="web"/>
 	<section if="TITLE_SCREEN_EASTER_EGG">
 		<assets path="assets/secrets" rename="assets/shared" exclude="*.ogg" if="web"/>
-		<assets path="assets/secrets" rename="assets/shared" exclude="*.mp3"  unless="web"/>
+		<assets path="assets/secrets" rename="assets/shared" exclude="*.mp3" unless="web"/>
 	</section>
 
 	<section if="TRANSLATIONS_ALLOWED">
 		<assets path="assets/translations" rename="assets" exclude="*.ogg" if="web"/>
-		<assets path="assets/translations" rename="assets" exclude="*.mp3"  unless="web"/>
+		<assets path="assets/translations" rename="assets" exclude="*.mp3" unless="web"/>
 	</section>
 
 	<section if="BASE_GAME_FILES">
 		<assets path="assets/base_game" rename="assets" exclude="*.ogg" if="web"/>
-		<assets path="assets/base_game" rename="assets" exclude="*.mp3"  unless="web"/>
+		<assets path="assets/base_game" rename="assets" exclude="*.mp3" unless="web"/>
 		<haxelib name="grig.audio" if="BASE_GAME_FILES"/>
 		<haxelib name="funkin.vis" if="BASE_GAME_FILES"/>
 	</section>
@@ -102,7 +106,7 @@
 	<haxelib name="extension-androidtools" if="android"/>
 
 	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="hxdiscord_rpc" />
-	<haxedef name="NO_PRECOMPILED_HEADERS" if="linux" />
+	<haxedef name="NO_PRECOMPILED_HEADERS" if="linux || android" />
 
 	<haxelib name="hxcpp-debug-server" if="debug"/>
 	<haxedef name="HXC_LIBVLC_LOGGING" if="VIDEOS_ALLOWED debug" />
