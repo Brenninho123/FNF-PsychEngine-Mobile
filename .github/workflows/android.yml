@@ -52,7 +52,7 @@ jobs:
           yes "" | haxelib run lime setup android
 
       - name: Compile
-        run: haxelib run lime build Project.xml android -D officialBuild
+        run: haxelib run lime build Project.xml android -D officialBuild -D no-compilation-pch
 
       - name: Publish Artifact
         uses: actions/upload-artifact@v4.3.4
