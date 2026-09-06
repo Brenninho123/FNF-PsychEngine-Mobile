@@ -54,6 +54,17 @@ jobs:
       - name: Compile
         run: haxelib run lime build Project.xml android -D officialBuild
 
+      - name: Show generated AndroidManifest.xml on failure
+        if: failure()
+        run: cat export/release/android/bin/app/src/main/AndroidManifest.xml || echo "manifest not found at expected path"
+
+      - name: Upload manifest artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@v4.3.4
+        with:
+          name: generated-manifest
+          path: export/release/android/bin/app/src/main/AndroidManifest.xml
+
       - name: Publish Artifact
         uses: actions/upload-artifact@v4.3.4
         with:
