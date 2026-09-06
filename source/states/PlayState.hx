@@ -35,6 +35,11 @@ import openfl.filters.ShaderFilter;
 
 import shaders.ErrorHandledShader;
 
+#if mobile
+import mobile.ui.PsychButton;
+import mobile.ui.PsychButton.PsychButtonType;
+#end
+
 import objects.VideoSprite;
 import objects.Note.EventNote;
 import objects.*;
@@ -538,6 +543,17 @@ class PlayState extends MusicBeatState
 		uiGroup.cameras = [camHUD];
 		noteGroup.cameras = [camHUD];
 		comboGroup.cameras = [camHUD];
+
+		#if mobile
+		pauseButton = new PsychButton(FlxG.width - 100, 20, PAUSE, function()
+		{
+			if (startedCountdown && canPause && !paused)
+				openPauseMenu();
+		});
+		pauseButton.scrollFactor.set();
+		pauseButton.cameras = [camHUD];
+		add(pauseButton);
+		#end
 
 		startingSong = true;
 
@@ -1531,6 +1547,7 @@ class PlayState extends MusicBeatState
 
 	#if mobile
 	public var mobileHitbox:mobile.controls.Hitbox;
+	public var pauseButton:PsychButton;
 	public var isMobileHUD:Bool = false;
 	private static var mobileNoteXPositions:Array<Float> = [260, 440, 710, 890];
 
