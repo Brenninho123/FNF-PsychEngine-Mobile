@@ -14,6 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.7
 
+      - name: Clean previous builds
+        run: |
+          rm -rf export/
+          rm -rf dump/
+          rm -rf .haxelib/
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -52,11 +58,13 @@ jobs:
           yes "" | haxelib run lime setup android
 
       - name: Compile
-        run: haxelib run lime build Project.xml android -D officialBuild
+        run: |
+          haxelib run lime build Project.xml android -D officialBuild
 
       - name: Show generated AndroidManifest.xml on failure
         if: failure()
-        run: cat export/release/android/bin/app/src/main/AndroidManifest.xml || echo "manifest not found at expected path"
+        run: |
+          cat export/release/android/bin/app/src/main/AndroidManifest.xml || echo "manifest not found at expected path"
 
       - name: Upload manifest artifact on failure
         if: failure()
