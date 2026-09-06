@@ -37,7 +37,11 @@ class CreditsState extends MusicBeatState
 		for (mod in Mods.parseList().enabled) pushModCreditsToList(mod);
 		#end
 
-		var defaultList:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
+var defaultList:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
+            ["Mobile Port Crew"],
+            ["Brenninho", "missing_icon", "Main Porter and Head of Psych Mobile", "https://www.youtube.com/@RBrenninho8840", "008000"],
+            ["ArgMods",   "missing_icon", "Port Helper of Psych Mobile",          "https://www.youtube.com/@ArgMods93",      "32CD32"],
+	        [""],
 			["Psych Engine Team"],
 			["Shadow Mario",		"shadowmario",		"Main Programmer and Head of Psych Engine",					"https://ko-fi.com/shadowmario",	"444444"],
 			["Riveren",				"riveren",			"Main Artist/Animator of Psych Engine",						"https://x.com/riverennn",			"14967B"],
