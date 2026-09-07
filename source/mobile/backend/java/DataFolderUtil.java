@@ -7,7 +7,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 
 import java.io.File;
 
@@ -108,7 +108,7 @@ public class DataFolderUtil
 			Uri uri;
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
 			{
-				String authority = Extension.mainContext.getPackageName() + ".fileprovider";
+				String authority = Extension.mainContext.getPackageName() + ".provider";
 				uri = FileProvider.getUriForFile(Extension.mainContext, authority, dir);
 			}
 			else
