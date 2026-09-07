@@ -1,94 +1,101 @@
 name: Build Android
 
 on:
-  push:
-    branches: [ main, experimental ]
-  pull_request:
-    branches: [ main, experimental ]
-  workflow_dispatch:
+push:
+branches: [ main, experimental ]
+pull_request:
+branches: [ main, experimental ]
+workflow_dispatch:
 
 jobs:
-  buildAndroid:
-    runs-on: ubuntu-latest
+buildAndroid:
+runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4.1.7
+```
+steps:
+  - uses: actions/checkout@v4.1.7
 
-      - name: Clean previous builds
-        run: |
-          rm -rf export/
-          rm -rf dump/
-          rm -rf .haxelib/
-          echo "✓ Cache cleaned"
+  - name: Clean previous builds
+    run: |
+      rm -rf export/
+      rm -rf dump/
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+  - uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
+      cache: gradle
 
-      - uses: android-actions/setup-android@v3
+  - uses: android-actions/setup-android@v3
 
-      - uses: krdlab/setup-haxe@master
-        with:
-          haxe-version: 4.3.4
+  - uses: krdlab/setup-haxe@master
+    with:
+      haxe-version: 4.3.4
 
-      - name: Install Haxelib
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -qq libvlc-dev
-          sudo apt-get install -qq libvlccore-dev
-          haxelib setup ~/haxelib --quiet
-          haxelib install hxcpp > /dev/null --quiet
-          haxelib update --always
-          chmod +x ./setup/unix.sh
-          sh ./setup/unix.sh
+  - name: Cache Haxelib
+    uses: actions/cache@v4
+    with:
+      path: |
+        ~/haxelib
+        ~/.lime
+      key: haxelib-${{ runner.os }}-${{ hashFiles('hmm.json') }}
+      restore-keys: |
+        haxelib-${{ runner.os }}-
 
-      - name: Install dependencies via hmm
-        run: |
-          haxelib git hmm https://github.com/andywhite37/hmm.git --quiet
-          haxelib run hmm install --quiet
+  - name: Install Haxelib
+    run: |
+      sudo apt-get update -qq
+      sudo apt-get install -qq libvlc-dev libvlccore-dev
+      haxelib setup ~/haxelib --quiet
+      haxelib install hxcpp --quiet
+      chmod +x ./setup/unix.sh
+      sh ./setup/unix.sh
 
-      - name: Skip SScript setup mode
-        run: echo 'oy9:showMacroty8:loopCosti25y10:includeAllfg' >> ~/settings.cocoa
+  - name: Install dependencies via hmm
+    run: |
+      haxelib git hmm https://github.com/andywhite37/hmm.git --quiet
+      haxelib run hmm install --quiet
 
-      - name: Setup Android SDK and NDK for Lime
-        run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager --install "ndk;21.4.7075529" "platforms;android-34" "build-tools;34.0.0"
-          sdkmanager --update
-          haxelib run lime config ANDROID_SDK $ANDROID_HOME
-          haxelib run lime config ANDROID_NDK_ROOT $ANDROID_HOME/ndk/21.4.7075529
-          haxelib run lime config JAVA_HOME $JAVA_HOME
-          yes "" | haxelib run lime setup android
+  - name: Skip SScript setup mode
+    run: echo 'oy9:showMacroty8:loopCosti25y10:includeAllfg' >> ~/settings.cocoa
 
-      - name: Compile
-        run: |
-          echo "Starting compilation..."
-          haxelib run lime build Project.xml android -D officialBuild -v
+  - name: Setup Android SDK and NDK for Lime
+    run: |
+      yes | sdkmanager --licenses > /dev/null || true
+      sdkmanager --install "ndk;21.4.7075529" "platforms;android-34" "build-tools;34.0.0"
+      haxelib run lime config ANDROID_SDK $ANDROID_HOME
+      haxelib run lime config ANDROID_NDK_ROOT $ANDROID_HOME/ndk/21.4.7075529
+      haxelib run lime config JAVA_HOME $JAVA_HOME
+      yes "" | haxelib run lime setup android
 
-      - name: Show generated AndroidManifest.xml on failure
-        if: failure()
-        run: |
-          echo "=== Checking Android Build Output ==="
-          if [ -f export/release/android/bin/app/src/main/AndroidManifest.xml ]; then
-            echo "✓ Manifest found. Content:"
-            cat export/release/android/bin/app/src/main/AndroidManifest.xml
-          else
-            echo "❌ Manifest not found at expected path"
-            echo "Checking export directory structure:"
-            find export/release/android -name "*.xml" 2>/dev/null || echo "No XML files found"
-          fi
+  - name: Compile
+    run: |
+      echo "Starting compilation..."
+      haxelib run lime build Project.xml android -D officialBuild
 
-      - name: Upload manifest artifact on failure
-        if: failure()
-        uses: actions/upload-artifact@v4.3.4
-        with:
-          name: generated-manifest
-          path: export/release/android/bin/app/src/main/AndroidManifest.xml
+  - name: Show generated AndroidManifest.xml on failure
+    if: failure()
+    run: |
+      echo "=== Checking Android Build Output ==="
+      if [ -f export/release/android/bin/app/src/main/AndroidManifest.xml ]; then
+        cat export/release/android/bin/app/src/main/AndroidManifest.xml
+      else
+        echo "Manifest not found. Checking export directory:"
+        find export/release/android -name "*.xml" 2>/dev/null || true
+      fi
 
-      - name: Publish Artifact
-        if: success()
-        uses: actions/upload-artifact@v4.3.4
-        with:
-          name: androidBuild
-          path: export/release/android/bin
+  - name: Upload manifest artifact on failure
+    if: failure()
+    uses: actions/upload-artifact@v4.3.4
+    with:
+      name: generated-manifest
+      path: export/release/android/bin/app/src/main/AndroidManifest.xml
+      if-no-files-found: ignore
+
+  - name: Publish Artifact
+    if: success()
+    uses: actions/upload-artifact@v4.3.4
+    with:
+      name: androidBuild
+      path: export/release/android/bin
+```
