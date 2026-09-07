@@ -18,6 +18,7 @@ jobs:
   buildAndroid:
     name: Android
     runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     steps:
       - name: Checkout
@@ -44,7 +45,40 @@ jobs:
       - name: Install system packages
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq libvlc-dev libvlccore-dev
+          sudo apt-get install -y -qq \
+            build-essential \
+            cmake \
+            clang \
+            g++ \
+            pkg-config \
+            python3 \
+            zlib1g-dev \
+            libssl-dev \
+            libmbedtls-dev \
+            libasound2-dev \
+            libpulse-dev \
+            libopenal-dev \
+            libsndfile1-dev \
+            libsdl2-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libxinerama-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libfreetype6-dev \
+            libharfbuzz-dev \
+            libpng-dev \
+            libjpeg-dev \
+            libudev-dev \
+            libcurl4-openssl-dev \
+            libxkbcommon-dev \
+            libglu1-mesa-dev \
+            wget \
+            git
+          # optional: install wine if you plan to try windows build on ubuntu runner
+          # sudo apt-get install -y -qq wine
 
       - name: Install Haxe libraries
         run: |
@@ -68,7 +102,10 @@ jobs:
           haxelib run lime config ANDROID_SETUP true
 
       - name: Compile
-        run: haxelib run lime build Project.xml android -D officialBuild
+        run: |
+          set -x
+          echo "Running: haxelib run lime build Project.xml android -D officialBuild"
+          haxelib run lime build Project.xml android -D officialBuild
 
       - name: Show generated AndroidManifest.xml on failure
         if: failure()
