@@ -9,7 +9,9 @@ art/buildScripts/test_x64-debug-officialrelease.bat
 export/*
 .vscode/*
 .haxelib/
-.github/
+# Keep Actions tracked.
+# .github/
+local.properties
 *.code-workspace
 vs_Community.exe
 # Local history which shouldn't be shared.
