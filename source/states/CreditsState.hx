@@ -40,7 +40,10 @@ class CreditsState extends MusicBeatState
 var defaultList:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
             ["Mobile Port Crew"],
             ["Brenninho", "missing_icon", "Main Porter and Head of Psych Mobile", "https://www.youtube.com/@RBrenninho8840", "008000"],
-            ["ArgMods",   "missing_icon", "Port Helper of Psych Mobile",          "https://www.youtube.com/@ArgMods93",      "32CD32"],
+            ["ArgMods",   "missing_icon", "Port Helper of Psych Mobile",          "https://www.youtube.com/@ArgMods93",      "00FF66"],
+		    [""],
+	        ["Mobile Port Contributors"],
+		    ["Lenin Asto", "len", "Fixed Actions and Issues during compilation", "https://youtube.com/@lenin_anonimo_of?si=Pdz-74axvwt4xVBU", "009FD9"],
 	        [""],
 			["Psych Engine Team"],
 			["Shadow Mario",		"shadowmario",		"Main Programmer and Head of Psych Engine",					"https://ko-fi.com/shadowmario",	"444444"],
