@@ -2,9 +2,17 @@ name: Build Android
 
 on:
   push:
-    branches: [main, experimental, patch-1]
+    branches:
+      - main
+      - experimental
+      - patch-1
+
   pull_request:
-    branches: [main, experimental, patch-1]
+    branches:
+      - main
+      - experimental
+      - patch-1
+
   workflow_dispatch:
 
 env:
@@ -15,18 +23,20 @@ env:
   ANDROID_NDK_VERSION: "29.0.14206865"
 
 jobs:
-  buildAndroid:
-    name: Android
-    runs-on: ubuntu-latest
+  android:
+    name: Build Psych Mobile Android
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Clean workspace outputs
+      - name: Clean Workspace
         run: |
-          rm -rf export dump .haxelib
+          rm -rf export
+          rm -rf dump
+          rm -rf .haxelib
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -42,7 +52,7 @@ jobs:
         with:
           haxe-version: ${{ env.HAXE_VERSION }}
 
-      - name: Install system packages
+      - name: Install System Dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq \
@@ -74,62 +84,60 @@ jobs:
             libudev-dev \
             libcurl4-openssl-dev \
             libxkbcommon-dev \
-            libglu1-mesa-dev \
             wget \
             git
-          # optional: install wine if you plan to try windows build on ubuntu runner
-          # sudo apt-get install -y -qq wine
 
-      - name: Install Haxe libraries
+      - name: Install Haxelib Libraries
         run: |
           chmod +x ./setup/unix.sh
           sh ./setup/unix.sh
 
-      - name: Skip SScript setup mode
-        run: echo 'oy9:showMacroty8:loopCosti25y10:includeAllfg' >> ~/settings.cocoa
-
-      - name: Configure Android toolchain
+      - name: Configure Android Toolchain
         run: |
           yes | sdkmanager --licenses > /dev/null || true
+
           sdkmanager --install \
             "platform-tools" \
             "platforms;android-${ANDROID_API_LEVEL}" \
             "build-tools;${ANDROID_BUILD_TOOLS}" \
             "ndk;${ANDROID_NDK_VERSION}"
+
           haxelib run lime config ANDROID_SDK "$ANDROID_HOME"
           haxelib run lime config ANDROID_NDK_ROOT "$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}"
           haxelib run lime config JAVA_HOME "$JAVA_HOME"
           haxelib run lime config ANDROID_SETUP true
 
-      - name: Compile
+      - name: Rebuild hxcpp
         run: |
+          haxelib run lime rebuild hxcpp --quiet
+
+      - name: Build Psych Mobile
+        run: |
+          set -e
           set -x
-          echo "Running: haxelib run lime build Project.xml android -D officialBuild"
+
           haxelib run lime build Project.xml android -D officialBuild
 
-      - name: Show generated AndroidManifest.xml on failure
+      - name: Show Build Information on Failure
         if: failure()
         run: |
+          echo "===== Android build files ====="
+          find export/release/android -maxdepth 8 -type f 2>/dev/null || true
+
+          echo "===== AndroidManifest.xml ====="
           manifest="export/release/android/bin/app/src/main/AndroidManifest.xml"
+
           if [ -f "$manifest" ]; then
             cat "$manifest"
           else
-            find export/release/android -name "*.xml" 2>/dev/null || true
+            echo "AndroidManifest.xml not found."
           fi
 
-      - name: Upload manifest artifact on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-manifest
-          path: export/release/android/bin/app/src/main/AndroidManifest.xml
-          if-no-files-found: ignore
-
-      - name: Upload Android artifact
+      - name: Upload Psych Mobile APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: androidBuild
+          name: PsychMobile-Android
           path: |
             export/release/android/bin/app/build/outputs/apk/**/*.apk
             export/release/android/bin/**/*.apk
