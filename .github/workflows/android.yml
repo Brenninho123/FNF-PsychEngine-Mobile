@@ -6,11 +6,13 @@ on:
       - main
       - experimental
       - patch-1
+
   pull_request:
     branches:
       - main
       - experimental
       - patch-1
+
   workflow_dispatch:
     inputs:
       version:
@@ -34,6 +36,9 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      # ------------------------------------------------------------
+      # Checkout
+      # ------------------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -72,7 +77,7 @@ jobs:
           haxe-version: ${{ env.HAXE_VERSION }}
 
       # ------------------------------------------------------------
-      # Dependencies
+      # System dependencies
       # ------------------------------------------------------------
       - name: Install system dependencies
         run: |
@@ -94,9 +99,16 @@ jobs:
       - name: Clean Haxelib
         run: |
           rm -rf ~/.haxelib
-          mkdir -p ~/.haxelib
+          rm -rf ~/haxelib
+          mkdir -p ~/haxelib
+          haxelib setup ~/haxelib
 
-          haxelib setup ~/.haxelib
+      # ------------------------------------------------------------
+      # Configure project settings
+      # ------------------------------------------------------------
+      - name: Configure Cocoa settings
+        run: |
+          echo "skipSScriptSetup=true" >> ~/settings.cocoa
 
       # ------------------------------------------------------------
       # Project setup
@@ -105,11 +117,6 @@ jobs:
         run: |
           chmod +x ./setup/unix.sh
           sh ./setup/unix.sh
-
-      # Prevent setup script from trying to configure SScript
-      - name: Configure Cocoa settings
-        run: |
-          echo "skipSScriptSetup=true" >> ~/settings.cocoa
 
       # ------------------------------------------------------------
       # Android environment
@@ -156,7 +163,7 @@ jobs:
           if-no-files-found: error
 
       # ------------------------------------------------------------
-      # Optional release
+      # Optional GitHub Release
       # ------------------------------------------------------------
       - name: Create GitHub Release
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
