@@ -1,3 +1,4 @@
+```yaml
 name: Build Android
 
 on:
@@ -119,14 +120,29 @@ jobs:
           sh ./setup/unix.sh
 
       # ------------------------------------------------------------
+      # Install required Haxelib dependencies
+      # ------------------------------------------------------------
+      - name: Install android-manager
+        run: |
+          haxelib install android-manager
+
+      # ------------------------------------------------------------
       # Android environment
       # ------------------------------------------------------------
       - name: Configure Android environment
         run: |
-          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/${ANDROID_NDK_VERSION}" >> $GITHUB_ENV
-          echo "JAVA_HOME=$JAVA_HOME_21_X64" >> $GITHUB_ENV
-          echo "ANDROID_SETUP=true" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/${ANDROID_NDK_VERSION}" >> "$GITHUB_ENV"
+          echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+          echo "ANDROID_SETUP=true" >> "$GITHUB_ENV"
+
+      # ------------------------------------------------------------
+      # Verify Haxelib dependencies
+      # ------------------------------------------------------------
+      - name: Verify Haxelib
+        run: |
+          haxelib list
+          haxelib path android-manager
 
       # ------------------------------------------------------------
       # Build Psych Engine Mobile
@@ -173,3 +189,4 @@ jobs:
           name: Psych Mobile ${{ github.event.inputs.version }}
           files: ${{ steps.apk.outputs.path }}
           generate_release_notes: true
+```
