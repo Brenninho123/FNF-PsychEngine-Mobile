@@ -93,8 +93,6 @@
 
 	<assets path="assets" include="*.ttf|*.otf" type="binary" nocompress="true" />
 
-	<assets path="assets/mobile" if="mobile" />
-
 	<assets path="assets/fonts" if="exists('assets/fonts')" />
 
 	<assets
